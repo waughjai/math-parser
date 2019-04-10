@@ -19,23 +19,23 @@ namespace WaughJ\MathParser
 					[
 						'+' => function( array $args )
 						{
-							return $this->doForEach( $args, function( $orig, $arg ) { return $orig + $arg; } );
+							return $this->doForEach( $args, function( $orig, $arg ) { return floatval( $orig ) + floatval( $arg ); } );
 						},
 						'-' => function( array $args )
 						{
-							return $this->doForEach( $args, function( $orig, $arg ) { return $orig - $arg; } );
+							return $this->doForEach( $args, function( $orig, $arg ) { return floatval( $orig ) - floatval( $arg ); } );
 						},
 						'*' => function( array $args )
 						{
-							return $this->doForEach( $args, function( $orig, $arg ) { return $orig * $arg; } );
+							return $this->doForEach( $args, function( $orig, $arg ) { return floatval( $orig ) * floatval( $arg ); } );
 						},
 						'/' => function( array $args )
 						{
-							return $this->doForEach( $args, function( $orig, $arg ) { return $orig / $arg; } );
+							return $this->doForEach( $args, function( $orig, $arg ) { return floatval( $orig ) / floatval( $arg ); } );
 						},
 						'%' => function( array $args )
 						{
-							return $this->doForEach( $args, function( $orig, $arg ) { return $orig % $arg; } );
+							return $this->doForEach( $args, function( $orig, $arg ) { return floatval( $orig ) % floatval( $arg ); } );
 						},
 						'=' => function( array $args )
 						{
@@ -43,7 +43,7 @@ namespace WaughJ\MathParser
 						},
 						'#=' => function( array $args )
 						{
-							return $this->doForEach( $args, function( $orig, $arg ) { return intval( $orig ) === intval( $arg ); } );
+							return $this->doForEach( $args, function( $orig, $arg ) { return floatval( $orig ) === floatval( $arg ); } );
 						},
 						'!=' => function( array $args )
 						{
@@ -51,7 +51,7 @@ namespace WaughJ\MathParser
 						},
 						'!#=' => function( array $args )
 						{
-							return $this->doForEach( $args, function( $orig, $arg ) { return intval( $orig ) !== intval( $arg ); } );
+							return $this->doForEach( $args, function( $orig, $arg ) { return floatval( $orig ) !== floatval( $arg ); } );
 						},
 						'true' => function( array $args )
 						{
@@ -63,12 +63,7 @@ namespace WaughJ\MathParser
 						},
 						'ceil' => function( array $args )
 						{
-							$arg = array_pop( $args );
-							if ( is_array( $arg ) )
-							{
-								$arg = $this->eval( $arg );
-							}
-							return ceil( $arg );
+							return ceil( floatval( $this->eval( array_pop( $args ) ) ) );
 						},
 						'if' => function( array $args )
 						{

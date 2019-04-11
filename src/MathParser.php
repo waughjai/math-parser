@@ -81,6 +81,10 @@ namespace WaughJ\MathParser
 						'and' => function( array $args )
 						{
 							return $this->$functions[ '&' ]( $args );
+						},
+						'"' => function( array $args )
+						{
+							return implode( ' ', array_reverse( $args ) );
 						}
 					];
 				}
@@ -130,7 +134,9 @@ namespace WaughJ\MathParser
 						}
 						break;
 
-						case ( ',' ):
+						case ( ' ' ):
+						case ( "\t" ):
+						case ( "\n" ):
 						{
 							if ( !is_array( $data ) )
 							{

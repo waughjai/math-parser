@@ -282,25 +282,10 @@ class MathParserTest extends TestCase
 		$math->parse( '(ghurghalaflsdf 1 2)' );
 	}
 
-	/*
-	public function testInvalidFunction()
-	{
-		$math = new MathParser();
-		$this->expectException( MathParserExceptionInvalidFunction::class );
-		$this->assertEquals( null, $math->parse( '()' ) );
-	}
-
 	public function testInvalidSyntax()
-	{
-		$math = new MathParser();
-		$this->expectException( MathParserExceptionInvalidFunction::class );
-		$this->assertEquals( null, $math->parse( ' 89y3tp 032r (( ' ) );
-	}
-
-	public function testInvalidSyntax2()
 	{
 		$math = new MathParser();
 		$this->expectException( MathParserExceptionInvalidSyntaxFunctionClosedOutsideFunction::class );
 		$this->assertEquals( null, $math->parse( '))y 849 py8' ) );
-	}*/
+	}
 }

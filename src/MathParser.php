@@ -256,13 +256,9 @@ namespace WaughJ\MathParser
 				if ( is_array( $data ) )
 				{
 					$data = array_reverse( $data );
-					$function = array_pop( $data );
+					$function = $this->eval( array_pop( $data ) );
 
-					if ( is_array( $function ) )
-					{
-						throw new MathParserExceptionInvalidFunction( $function );
-					}
-					else if ( array_key_exists( $function, $this->functions ) )
+					if ( array_key_exists( $function, $this->functions ) )
 					{
 						return $this->functions[ $function ]( $data );
 					}

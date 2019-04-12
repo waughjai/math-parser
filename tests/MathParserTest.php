@@ -254,6 +254,31 @@ class MathParserTest extends TestCase
 		$this->assertFalse( $math->parse( '(=and 2 2 (/ 4 2) (- 12 4 5 1) 5)' ) );
 	}
 
+	public function testFunctionAsFunction()
+	{
+		$math = new MathParser();
+		$this->assertEquals
+		(
+			5,
+			$math->parse
+			('(
+				(if (= 2 2) + -)
+				3
+				2
+			)')
+		);
+		$this->assertEquals
+		(
+			1,
+			$math->parse
+			('(
+				(if (= 2 3) + -)
+				3
+				2
+			)')
+		);
+	}
+
 	public function testTooManyRightParentheses()
 	{
 		$math = new MathParser();

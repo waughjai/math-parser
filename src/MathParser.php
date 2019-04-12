@@ -171,9 +171,9 @@ namespace WaughJ\MathParser
 					}
 					else if ( $c === ')' )
 					{
-						if ( !is_array( $data ) )
+						if ( !is_array( $data ) || empty( $stack ) )
 						{
-							// ERROR
+							throw new MathParserExceptionInvalidSyntaxFunctionClosedOutsideFunction( $expression );
 						}
 						else
 						{
@@ -205,9 +205,9 @@ namespace WaughJ\MathParser
 					}
 					else
 					{
-						if ( !is_array( $data ) )
+						if ( !is_array( $data ) || empty( $stack ) )
 						{
-							// ERROR
+							throw new MathParserExceptionInvalidSyntaxContentOutsideOfFunction( $expression );
 						}
 						else
 						{
@@ -257,13 +257,18 @@ namespace WaughJ\MathParser
 				{
 					$data = array_reverse( $data );
 					$function = array_pop( $data );
-					if ( array_key_exists( $function, $this->functions ) )
+
+					if ( is_array( $function ) )
+					{
+						throw new MathParserExceptionInvalidFunction( $function );
+					}
+					else if ( array_key_exists( $function, $this->functions ) )
 					{
 						return $this->functions[ $function ]( $data );
 					}
 					else
 					{
-						// ERROR
+						throw new MathParserExceptionNonExistentFunctionCall( $function );
 					}
 				}
 				return $data;

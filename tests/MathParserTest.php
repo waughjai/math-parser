@@ -2,6 +2,10 @@
 
 use PHPUnit\Framework\TestCase;
 use WaughJ\MathParser\MathParser;
+use WaughJ\MathParser\MathParserExceptionInvalidFunction;
+use WaughJ\MathParser\MathParserExceptionInvalidSyntaxFunctionClosedOutsideFunction;
+use WaughJ\MathParser\MathParserExceptionInvalidSyntaxContentOutsideOfFunction;
+use WaughJ\MathParser\MathParserExceptionNonExistentFunctionCall;
 
 class MathParserTest extends TestCase
 {
@@ -249,4 +253,54 @@ class MathParserTest extends TestCase
 		$this->assertTrue( $math->parse( '(=and 2 2 (/ 4 2) (- 12 4 5 1))' ) );
 		$this->assertFalse( $math->parse( '(=and 2 2 (/ 4 2) (- 12 4 5 1) 5)' ) );
 	}
+
+	public function testTooManyRightParentheses()
+	{
+		$math = new MathParser();
+		$this->expectException( MathParserExceptionInvalidSyntaxFunctionClosedOutsideFunction::class );
+		$math->parse( '(+ 2 2))' );
+	}
+
+	public function testEarlyParenthesesClose()
+	{
+		$math = new MathParser();
+		$this->expectException( MathParserExceptionInvalidSyntaxFunctionClosedOutsideFunction::class );
+		$math->parse( ')(+ 2 2)' );
+	}
+
+	public function testContentOutsideOFunction()
+	{
+		$math = new MathParser();
+		$this->expectException( MathParserExceptionInvalidSyntaxContentOutsideOfFunction::class );
+		$math->parse( '2(+ 2 2)' );
+	}
+
+	public function testInvalidFunction()
+	{
+		$math = new MathParser();
+		$this->expectException( MathParserExceptionNonExistentFunctionCall::class );
+		$math->parse( '(ghurghalaflsdf 1 2)' );
+	}
+
+	/*
+	public function testInvalidFunction()
+	{
+		$math = new MathParser();
+		$this->expectException( MathParserExceptionInvalidFunction::class );
+		$this->assertEquals( null, $math->parse( '()' ) );
+	}
+
+	public function testInvalidSyntax()
+	{
+		$math = new MathParser();
+		$this->expectException( MathParserExceptionInvalidFunction::class );
+		$this->assertEquals( null, $math->parse( ' 89y3tp 032r (( ' ) );
+	}
+
+	public function testInvalidSyntax2()
+	{
+		$math = new MathParser();
+		$this->expectException( MathParserExceptionInvalidSyntaxFunctionClosedOutsideFunction::class );
+		$this->assertEquals( null, $math->parse( '))y 849 py8' ) );
+	}*/
 }

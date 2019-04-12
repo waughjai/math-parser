@@ -69,8 +69,36 @@ namespace WaughJ\MathParser
 						},
 						'if' => function( array $args )
 						{
-							assert( count( $args ) === 3 );
-							return ( $this->eval( $args[ 2 ] ) === true ) ? $this->eval( $args[ 1 ] ) : $this->eval( $args[ 0 ] );
+							$arg_count = count( $args );
+							switch ( $arg_count )
+							{
+								case ( 0 ):
+								{
+									// Error
+								}
+								break;
+
+								case ( 1 ):
+								{
+									return $this->eval( array_pop( $args ) );
+								}
+								break;
+
+								case ( 2 ):
+								{
+									return ( $this->eval( $args[ 1 ] ) === true ) ? $this->eval( $args[ 0 ] ) : null;
+								}
+								break;
+
+								default: // 3 or greater
+								{
+									$condition = array_pop( $args );
+									$do_on_yes = array_pop( $args );
+									$do_on_no = array_pop( $args );
+									return ( $this->eval( $condition ) === true ) ? $this->eval( $do_on_yes ) : $this->eval( $do_on_no );
+								}
+								break;
+							}
 						},
 						'or' => function( array $args )
 						{

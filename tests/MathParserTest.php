@@ -85,8 +85,35 @@ class MathParserTest extends TestCase
 				? "equal!"
 				: "not equal..."
 			),
-			$math->parse
-			('(if ( #= 2 2 ) (" equal!) (" not equal...))')
+			$math->parse('(if ( #= 2 2 ) (" equal!) (" not equal...))')
+		);
+	}
+
+	public function testIfWithJust1Argument()
+	{
+		$math = new MathParser();
+		$this->assertTrue( $math->parse('(if ( #= 2 2 ))') );
+		$this->assertFalse( $math->parse('(if ( #= 2 3 ))') );
+	}
+
+	public function testIfWith2Arguments()
+	{
+		$math = new MathParser();
+		$this->assertEquals( null, $math->parse('(if (false) (" true!))') );
+		$this->assertEquals( "true!", $math->parse('(if (true) (" true!))') );
+	}
+
+	public function testIfWithMoreThan3Arguments()
+	{
+		$math = new MathParser();
+		$this->assertEquals
+		(
+			(
+				( 2 == 2 )
+				? "equal!"
+				: "not equal..."
+			),
+			$math->parse('(if ( #= 2 2 ) (" equal!) (" not equal...) 2 (" bleeugh))')
 		);
 	}
 

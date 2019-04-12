@@ -140,21 +140,46 @@ class MathParserTest extends TestCase
 			$math->parse
 			('
 				(
-					if (
-						or (
-							#= ( % (n) 6 ) 1
-						) (
-							#= ( % (n) 6 ) 2
+					if
+					(
+						or
+						(
+							#=
+							( % (n) 6 ) 1)
+							(
+								#=
+								( % (n) 6 )
+								2
+							)
 						)
-					) (
-						* (
-							- ( ceil ( / (n) 6 ) ) 1
-						) (z)
-					) (
-						* ( ceil ( / (n) 6 ) ) (z)
+					(
+						*
+						(
+							-
+							( ceil ( / (n) 6 ) )
+							1
+						)
+						(z)
+					)
+					(
+						*
+						(
+							ceil
+							( / (n) 6 )
+						)
+						(z)
 					)
 				)
 			')
 		);
+	}
+
+	public function testDifferentDividers()
+	{
+		$math = new MathParser();
+		$math->resetDividers( '|' );
+		$this->assertEquals( 4, $math->parse( '(+|2|2)' ) );
+		$math->addDivider( ',' );
+		$this->assertEquals( 2, $math->parse( '(/,8|4)' ) );
 	}
 }

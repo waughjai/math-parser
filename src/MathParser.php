@@ -13,6 +13,8 @@ namespace WaughJ\MathParser
 
 			public function __construct()
 			{
+				$this->dividers = self::DEFAULT_DIVIDERS;
+
 				if ( empty( $this->functions ) )
 				{
 					$this->functions =
@@ -98,82 +100,92 @@ namespace WaughJ\MathParser
 				$chars = str_split( trim( $expression ) );
 				foreach ( $chars as $c )
 				{
-					switch ( $c )
+					if ( $c === '(' )
 					{
-						case ( '(' ):
+						if ( !is_array( $data ) )
 						{
-							if ( !is_array( $data ) )
-							{
-								$data = [];
-								$stack[] = &$data;
-							}
-							else
-							{
-								$stack[ count( $stack ) - 1 ][] = [];
-								$stack[] = &$stack[ count( $stack ) - 1 ][ count( $stack[ count( $stack ) - 1 ] ) - 1 ];
-							}
+							$data = [];
+							$stack[] = &$data;
 						}
-						break;
-
-						case ( ')' ):
+						else
 						{
-							if ( !is_array( $data ) )
-							{
-								// ERROR
-							}
-							else
-							{
-								$current_arg = trim( $current_arg );
-								if ( !empty( $current_arg ) )
-								{
-									$stack[ count( $stack ) - 1 ][] = $current_arg;
-									$current_arg = '';
-								}
-								array_pop( $stack );
-							}
+							$stack[ count( $stack ) - 1 ][] = [];
+							$stack[] = &$stack[ count( $stack ) - 1 ][ count( $stack[ count( $stack ) - 1 ] ) - 1 ];
 						}
-						break;
-
-						case ( ' ' ):
-						case ( "\t" ):
-						case ( "\n" ):
+					}
+					else if ( $c === ')' )
+					{
+						if ( !is_array( $data ) )
 						{
-							if ( !is_array( $data ) )
+							// ERROR
+						}
+						else
+						{
+							$current_arg = trim( $current_arg );
+							if ( !empty( $current_arg ) )
 							{
-								// ERROR
-							}
-							else if ( empty( $current_arg ) )
-							{
-								// ERROR
-							}
-							else
-							{
-								$stack[ count( $stack ) - 1 ][] = trim( $current_arg );
+								$stack[ count( $stack ) - 1 ][] = $current_arg;
 								$current_arg = '';
 							}
+							array_pop( $stack );
 						}
-						break;
+					}
 
-						default:
+					else if ( in_array( $c, $this->dividers ) )
+					{
+						if ( !is_array( $data ) )
 						{
-							if ( !is_array( $data ) )
-							{
-								// ERROR
-							}
-							else
-							{
-								$current_arg .= $c;
-							}
+							// ERROR
 						}
-						break;
+						else if ( empty( $current_arg ) )
+						{
+							// ERROR
+						}
+						else
+						{
+							$stack[ count( $stack ) - 1 ][] = trim( $current_arg );
+							$current_arg = '';
+						}
+					}
+					else
+					{
+						if ( !is_array( $data ) )
+						{
+							// ERROR
+						}
+						else
+						{
+							$current_arg .= $c;
+						}
 					}
 				}
 				return $this->eval( $data );
 			}
 
-			public function addFunction( string $name, callable $function )
+			public function addFunction( string $name, callable $function ) : void
 			{
 				$this->functions[ $name ] = $function;
+			}
+
+			public function resetDividers( $dividers ) : void
+			{
+				if ( is_array( $dividers ) )
+				{
+					$this->dividers = $dividers;
+				}
+				else if ( is_string( $dividers ) )
+				{
+					$this->dividers = [ $dividers ];
+				}
+				else
+				{
+					// Error
+				}
+			}
+
+			public function addDivider( string $divider ) : void
+			{
+				$this->dividers[] = $divider;
 			}
 
 
@@ -221,5 +233,8 @@ namespace WaughJ\MathParser
 			}
 
 			private $functions;
+			private $divider;
+
+			private const DEFAULT_DIVIDERS = [ ' ', "\t", "\n" ];
 	}
 }

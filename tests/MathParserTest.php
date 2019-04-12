@@ -6,6 +6,8 @@ use WaughJ\MathParser\MathParserExceptionInvalidFunction;
 use WaughJ\MathParser\MathParserExceptionInvalidSyntaxFunctionClosedOutsideFunction;
 use WaughJ\MathParser\MathParserExceptionInvalidSyntaxContentOutsideOfFunction;
 use WaughJ\MathParser\MathParserExceptionNonExistentFunctionCall;
+use WaughJ\MathParser\MathParserExceptionInvalidDividersType;
+use WaughJ\MathParser\LisphpParser;
 
 class MathParserTest extends TestCase
 {
@@ -216,10 +218,9 @@ class MathParserTest extends TestCase
 
 	public function testDifferentDividers()
 	{
-		$math = new MathParser();
-		$math->resetDividers( '|' );
+		$math = new MathParser( new LisphpParser( [ '|' ] ) );
 		$this->assertEquals( 4, $math->parse( '(+|2|2)' ) );
-		$math->addDivider( ',' );
+		$math->changeParser( $math->getParser()->addDividers( ',' ) );
 		$this->assertEquals( 2, $math->parse( '(/,8|4)' ) );
 	}
 
@@ -227,7 +228,7 @@ class MathParserTest extends TestCase
 	{
 		$math = new MathParser();
 		$this->assertEquals( "¡BAM! ¡LOOK @ THAT BACON SIZZLE!", $math->parse( '(" ¡BAM! ¡LOOK @ THAT BACON SIZZLE!)' ));
-		$math->resetDividers( ',' );
+		$math->changeParser( new LisphpParser( ',' ) );
 		$this->assertEquals( "¡BAM! ¡LOOK @ THAT BACON SIZZLE!", $math->parse( '(", ¡BAM! ¡LOOK @ THAT BACON SIZZLE!)' ));
 		$this->assertEquals( "¡BAM! ¡LOOK @ THAT BACON SIZZLE!", $math->parse( '(", ¡BAM!, ¡LOOK, @, THAT, BACON, SIZZLE!)' ));
 		// TODO: ¿Do I want (", ¡BAM!, ¡LOOK, @, THAT, BACON, SIZZLE!) for parser with "," divider to keep commas or no?
@@ -312,5 +313,12 @@ class MathParserTest extends TestCase
 		$math = new MathParser();
 		$this->expectException( MathParserExceptionInvalidSyntaxFunctionClosedOutsideFunction::class );
 		$this->assertEquals( null, $math->parse( '))y 849 py8' ) );
+	}
+
+	public function testInvalidSyntax2()
+	{
+		$math = new MathParser( new LisphpParser( [ ',' ] ) );
+		$this->expectException( MathParserExceptionInvalidSyntaxContentOutsideOfFunction::class );
+		$math->parse( ',(+ 2 2)' );
 	}
 }

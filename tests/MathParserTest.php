@@ -60,6 +60,12 @@ class MathParserTest extends TestCase
 		$this->assertEquals( ceil( 6 / 5 ), $math->parse( '(ceil (/ 6 5 ))' ) );
 	}
 
+	public function testQuote()
+	{
+		$math = new MathParser();
+		$this->assertEquals( "¡BAM! ¡LOOK @ THAT BACON SIZZLE!", $math->parse( '(" ¡BAM! ¡LOOK @ THAT BACON SIZZLE!)' ));
+	}
+
 	public function testLayers()
 	{
 		$math = new MathParser();
@@ -211,6 +217,16 @@ class MathParserTest extends TestCase
 		$this->assertEquals( 4, $math->parse( '(+|2|2)' ) );
 		$math->addDivider( ',' );
 		$this->assertEquals( 2, $math->parse( '(/,8|4)' ) );
+	}
+
+	public function testQuoteWithDifferentDividers()
+	{
+		$math = new MathParser();
+		$this->assertEquals( "¡BAM! ¡LOOK @ THAT BACON SIZZLE!", $math->parse( '(" ¡BAM! ¡LOOK @ THAT BACON SIZZLE!)' ));
+		$math->resetDividers( ',' );
+		$this->assertEquals( "¡BAM! ¡LOOK @ THAT BACON SIZZLE!", $math->parse( '(", ¡BAM! ¡LOOK @ THAT BACON SIZZLE!)' ));
+		$this->assertEquals( "¡BAM! ¡LOOK @ THAT BACON SIZZLE!", $math->parse( '(", ¡BAM!, ¡LOOK, @, THAT, BACON, SIZZLE!)' ));
+		// TODO: ¿Do I want (", ¡BAM!, ¡LOOK, @, THAT, BACON, SIZZLE!) for parser with "," divider to keep commas or no?
 	}
 
 	public function testEqualOr()

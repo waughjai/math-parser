@@ -82,7 +82,35 @@ namespace WaughJ\MathParser
 						},
 						'and' => function( array $args )
 						{
-							return $this->$functions[ '&' ]( $args );
+							return $this->functions[ '&' ]( $args );
+						},
+						'=or' => function( array $args )
+						{
+							$comparison = floatval( $this->eval( array_pop( $args ) ) );
+							foreach ( $args as $arg )
+							{
+								if ( $comparison === floatval( $this->eval( $arg ) ) )
+								{
+									return true;
+								}
+							}
+							return false;
+						},
+						'=&' => function( array $args )
+						{
+							$comparison = floatval( $this->eval( array_pop( $args ) ) );
+							foreach ( $args as $arg )
+							{
+								if ( $comparison !== floatval( $this->eval( $arg ) ) )
+								{
+									return false;
+								}
+							}
+							return true;
+						},
+						'=and' => function( array $args )
+						{
+							return $this->functions[ '=&' ]( $args );
 						},
 						'"' => function( array $args )
 						{

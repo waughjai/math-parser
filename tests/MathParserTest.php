@@ -104,6 +104,9 @@ class MathParserTest extends TestCase
 		$this->assertTrue( $math->parse( '(& (true) (true))' ));
 		$this->assertFalse( $math->parse( '(& (true) (false) (false))' ));
 		$this->assertFalse( $math->parse( '(& (false) (false) (false))' ));
+		$this->assertTrue( $math->parse( '(and (true) (true))' ));
+		$this->assertFalse( $math->parse( '(and (true) (false) (false))' ));
+		$this->assertFalse( $math->parse( '(and (false) (false) (false))' ));
 	}
 
 	public function testComplexIf()
@@ -181,5 +184,26 @@ class MathParserTest extends TestCase
 		$this->assertEquals( 4, $math->parse( '(+|2|2)' ) );
 		$math->addDivider( ',' );
 		$this->assertEquals( 2, $math->parse( '(/,8|4)' ) );
+	}
+
+	public function testEqualOr()
+	{
+		$math = new MathParser();
+		$this->assertTrue( $math->parse( '(=or 1 1 2 3 4)' ) );
+		$this->assertTrue( $math->parse( '(=or 2 1 2 3 4)' ) );
+		$this->assertTrue( $math->parse( '(=or 3 1 2 3 4)' ) );
+		$this->assertTrue( $math->parse( '(=or 4 1 2 3 4)' ) );
+		$this->assertFalse( $math->parse( '(=or 5 1 2 3 4)' ) );
+		$this->assertTrue( $math->parse( '(=or (/ 12 4) 1 2 3 4)' ) );
+		$this->assertTrue( $math->parse( '(=or (/ 12 4) 1 2 (+ 1 2) 4)' ) );
+	}
+
+	public function testEqualAnd()
+	{
+		$math = new MathParser();
+		$this->assertTrue( $math->parse( '(=& 2 2 (/ 4 2) (- 12 4 5 1))' ) );
+		$this->assertFalse( $math->parse( '(=& 2 2 (/ 4 2) (- 12 4 5 1) 5)' ) );
+		$this->assertTrue( $math->parse( '(=and 2 2 (/ 4 2) (- 12 4 5 1))' ) );
+		$this->assertFalse( $math->parse( '(=and 2 2 (/ 4 2) (- 12 4 5 1) 5)' ) );
 	}
 }

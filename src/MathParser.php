@@ -48,16 +48,40 @@ namespace WaughJ\MathParser
 			{
 				if ( is_array( $data ) )
 				{
-					$data = array_reverse( $data );
-					$function = array_pop( $data );
-					var_dump( json_encode( $function ) );
-					$function = $this->eval( $function );
-
-					if ( is_string( $function ) )
+					if ( empty( $data ) )
 					{
+						// Return empty list.
+						return $data;
+					}
+					else if ( count( $data ) === 1 )
+					{
+						// Is function that takes no arguments ( arguments is an empty list ).
+						return $this->eval([ $data[ 0 ], [] ]);
+					}
+					else
+					{
+						$function = array_shift( $data );
+						$function = $this->eval( $function );
+						$args = array_map
+						(
+							function( $arg )
+							{
+								return $this->eval( $arg );
+							},
+							$data
+						);
+						if ( is_array( $function ) )
+						{
+							$function = $this->eval( $function );
+						}
+						else if ( !is_string( $function ) && is_callable( $function ) )
+						{
+							return $function( $args );
+						}
+
 						if ( array_key_exists( $function, $this->functions ) )
 						{
-							return $this->functions[ $function ]( $data );
+							return $this->functions[ $function ]( $args );
 						}
 						else
 						{
@@ -70,35 +94,87 @@ namespace WaughJ\MathParser
 
 			private function doForEach( array $args, callable $function )
 			{
-				$answer = $this->eval( array_pop( $args ) );
+				$answer = $this->eval( array_shift( $args ) );
 				while ( !empty( $args ) )
 				{
-					$arg = $this->eval( array_pop( $args ) );
+					$arg = $this->eval( array_shift( $args ) );
 					$answer = $function( $answer, $arg );
 				}
 				return $answer;
 			}
 
+			private function replaceNameWithValue( array $function_body, string $name, $value ) : array
+			{
+				foreach ( $function_body as &$item )
+				{
+					if ( is_string( $item ) && $item === $name )
+					{
+						$item = $value;
+					}
+					else if ( is_array( $item ) )
+					{
+						$item = replaceNameWithValue( $item, $name, $value );
+					}
+				}
+				return $function_body;
+			}
+
+			private function replaceNamesWithValues( array $function_body, array $argument_names, array $arguments ) : array
+			{
+				$argument_count = count( $argument_names );
+				if ( $argument_count !== count( $arguments ) )
+				{
+					throw new \Exception( "Arguments passed don’t match function signature." );
+				}
+				for ( $i = 0; $i < $argument_count; $i++ )
+				{
+					$argument_name = $argument_names[ $i ];
+					$value = $arguments[ $i ];
+					$function_body = $this->replaceNameWithValue( $function_body, $argument_name, $value );
+				}
+				return $function_body;
+			}
+
 			private function generateBuildInFunctionsList() : array
 			{
 				return [
+					'list' => function( array $args )
+					{
+						return $args;
+					},
 					'lambda' => function( array $args )
 					{
-						return '(" BIPPO)';
 						if ( empty( $args ) )
 						{
 							throw new MathParserExceptionInvalidFunctionCall( "Call to function “lambda” given no arguments. Needs at least 2." );
 						}
-						$argument_names = array_pop( $args );
+						$argument_names = array_shift( $args );
 						if ( empty( $args ) )
 						{
 							throw new MathParserExceptionInvalidFunctionCall( "Call to function “lambda” given only 1 argument. Needs at least 2." );
 						}
-						$function_body = array_pop( $args );
-						return function( array $args )
+						$function_body = array_shift( $args );
+						return function( array $args ) use ( $argument_names, $function_body )
 						{
+							$function_body = $this->replaceNamesWithValues( $function_body, $argument_names, $args );
+
 							return $this->eval( $function_body );
 						};
+					},
+					'reduce' => function( array $args )
+					{
+						$arg_count = count( $args );
+						if ( $arg_count !== 2 )
+						{
+							throw new MathParserExceptionInvalidFunctionCall( "Call to function “sum” given wrong number of arguments. Given {$arg_count}; needs exactly 2." );
+						}
+						$value = 0;
+						$function = $args[ 0 ];
+						foreach ( $args[ 1 ] as $arg )
+						{
+							$value = $this->eval([ $function, $value, $arg ]);
+						}
+						return $value;
 					},
 					'+' => function( array $args )
 					{
@@ -146,7 +222,7 @@ namespace WaughJ\MathParser
 					},
 					'ceil' => function( array $args )
 					{
-						return ceil( floatval( $this->eval( array_pop( $args ) ) ) );
+						return ceil( floatval( $this->eval( array_shift( $args ) ) ) );
 					},
 					'if' => function( array $args )
 					{
@@ -162,15 +238,17 @@ namespace WaughJ\MathParser
 
 							case ( 2 ):
 							{
-								return ( $this->eval( $args[ 1 ] ) === true ) ? $this->eval( $args[ 0 ] ) : null;
+								$condition = array_shift( $args );
+								$do_on_yes = array_shift( $args );
+								return ( $this->eval( $condition ) === true ) ? $this->eval( $do_on_yes ) : null;
 							}
 							break;
 
 							default: // 3 or greater
 							{
-								$condition = array_pop( $args );
-								$do_on_yes = array_pop( $args );
-								$do_on_no = array_pop( $args );
+								$condition = array_shift( $args );
+								$do_on_yes = array_shift( $args );
+								$do_on_no = array_shift( $args );
 								return ( $this->eval( $condition ) === true ) ? $this->eval( $do_on_yes ) : $this->eval( $do_on_no );
 							}
 							break;
@@ -190,7 +268,7 @@ namespace WaughJ\MathParser
 					},
 					'=or' => function( array $args )
 					{
-						$comparison = floatval( $this->eval( array_pop( $args ) ) );
+						$comparison = floatval( $this->eval( array_shift( $args ) ) );
 						foreach ( $args as $arg )
 						{
 							if ( $comparison === floatval( $this->eval( $arg ) ) )
@@ -202,7 +280,7 @@ namespace WaughJ\MathParser
 					},
 					'=&' => function( array $args )
 					{
-						$comparison = floatval( $this->eval( array_pop( $args ) ) );
+						$comparison = floatval( $this->eval( array_shift( $args ) ) );
 						foreach ( $args as $arg )
 						{
 							if ( $comparison !== floatval( $this->eval( $arg ) ) )
@@ -218,7 +296,7 @@ namespace WaughJ\MathParser
 					},
 					'"' => function( array $args )
 					{
-						return implode( ' ', array_reverse( $args ) );
+						return implode( $this->parser->getMainDivider(), $args );
 					},
 					'rand' => function( array $args )
 					{
@@ -226,12 +304,12 @@ namespace WaughJ\MathParser
 						{
 							return rand();
 						}
-						$min = array_pop( $args );
+						$min = array_shift( $args );
 						if ( empty( $args ) )
 						{
 							return rand( $min );
 						}
-						$max = array_pop( $args );
+						$max = array_shift( $args );
 						return rand( $min, $max );
 					},
 					'cmp' => function( array $args )
@@ -240,12 +318,12 @@ namespace WaughJ\MathParser
 						{
 							return true;
 						}
-						$function = array_pop( $args );
+						$function = array_shift( $args );
 						if ( empty( $args ) )
 						{
 							return true;
 						}
-						$target = array_pop( $args );
+						$target = array_shift( $args );
 						if ( empty( $args ) )
 						{
 							return true;
@@ -253,7 +331,7 @@ namespace WaughJ\MathParser
 
 						while ( !empty( $args ) )
 						{
-							if ( array_pop( $args ) >= $target )
+							if ( array_shift( $args ) >= $target )
 							{
 								return false;
 							}
@@ -267,7 +345,7 @@ namespace WaughJ\MathParser
 							return true;
 						}
 
-						$target = array_pop( $args );
+						$target = array_shift( $args );
 
 						if ( empty( $args ) )
 						{
@@ -276,7 +354,7 @@ namespace WaughJ\MathParser
 
 						while ( !empty( $args ) )
 						{
-							if ( array_pop( $args ) >= $target )
+							if ( array_shift( $args ) >= $target )
 							{
 								return false;
 							}

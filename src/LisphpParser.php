@@ -23,7 +23,7 @@ namespace WaughJ\MathParser
 			public function parse( string $expression )
 			{
 				$this->expression = $expression;
-				$this->chars = str_split( trim( $expression ) );
+				$this->chars = str_split( $this->trim( $expression ) );
 				$this->data = null;
 				$this->stack = [];
 				$this->current_arg = '';
@@ -53,7 +53,7 @@ namespace WaughJ\MathParser
 						}
 						else
 						{
-							$this->current_arg = trim( $this->current_arg );
+							$this->current_arg = $this->trim( $this->current_arg );
 							$this->moveCurrentArgumentToLastItemOnStack();
 							array_pop( $this->stack ); // Since current function list is done, pop it off the stack so we return to the previous function is progress.
 						}
@@ -65,13 +65,13 @@ namespace WaughJ\MathParser
 						{
 							throw new MathParserExceptionInvalidSyntaxContentOutsideOfFunction( $this->expression );
 						}
-						else if ( empty( $this->current_arg ) )
+						else if ( $this->testEmptyArgument( ( string )( $this->current_arg ) ) )
 						{
 							// Just ignore
 						}
 						else
 						{
-							$this->current_arg = trim( $this->current_arg );
+							$this->current_arg = $this->trim( $this->current_arg );
 							$this->moveCurrentArgumentToLastItemOnStack();
 						}
 					}
@@ -105,6 +105,11 @@ namespace WaughJ\MathParser
 				return new LisphpParser( $dividers );
 			}
 
+			public function getMainDivider() : string
+			{
+				return $this->dividers[ 0 ];
+			}
+
 
 
 		//
@@ -125,7 +130,7 @@ namespace WaughJ\MathParser
 
 			private function moveCurrentArgumentToLastItemOnStack() : void
 			{
-				if ( !empty( $this->current_arg ) )
+				if ( !$this->testEmptyArgument( $this->current_arg ) )
 				{
 					// Add argument to stack.
 					$this->stack[ count( $this->stack ) - 1 ][] = $this->current_arg;
@@ -137,6 +142,16 @@ namespace WaughJ\MathParser
 			private function testOutsideOfFunction() : bool
 			{
 				return !is_array( $this->data ) || empty( $this->stack );
+			}
+
+			private function testEmptyArgument( string $arg ) : bool
+			{
+				return empty( $arg ) && $arg !== '0';
+			}
+
+			private function trim( string $string ) : string
+			{
+				return trim( $string, implode( '', $this->dividers ) );
 			}
 
 			private $expression;

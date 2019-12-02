@@ -6,5 +6,6 @@ namespace WaughJ\MathParser
 	interface StringParser
 	{
 		public function parse( string $expression );
+		public function getMainDivider() : string;
     }
 }
